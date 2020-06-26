@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"syscall"
@@ -21,7 +20,6 @@ type payload struct {
 }
 
 func main() {
-	// Increase resources limitations
 	var rLimit syscall.Rlimit
 	if err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit); err != nil {
 		panic(err)
@@ -30,13 +28,6 @@ func main() {
 	if err := syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit); err != nil {
 		panic(err)
 	}
-
-	// Enable pprof hooks
-	// go func() {
-	// 	if err := http.ListenAndServe("localhost:6060", nil); err != nil {
-	// 		log.Fatalf("pprof failed: %v", err)
-	// 	}
-	// }()
 
 	// Start epoll
 	var err error
@@ -53,24 +44,6 @@ func main() {
 	go startepoll()
 	go starteroom()
 
-	http.HandleFunc("/play", func(w http.ResponseWriter, r *http.Request) {
-		content, err := ioutil.ReadFile("play.html")
-		if err != nil {
-			http.Error(w, "Could not open requested file", http.StatusInternalServerError)
-			return
-		}
-		fmt.Fprintf(w, "%s", content)
-	})
-
-	http.HandleFunc("/join", func(w http.ResponseWriter, r *http.Request) {
-		content, err := ioutil.ReadFile("join.html")
-		if err != nil {
-			http.Error(w, "Could not open requested file", http.StatusInternalServerError)
-			return
-		}
-		fmt.Fprintf(w, "%s", content)
-	})
-
 	http.HandleFunc("/ws/join", func(w http.ResponseWriter, r *http.Request) {
 		conn, _, _, err := ws.UpgradeHTTP(r, w)
 
@@ -79,7 +52,9 @@ func main() {
 			return
 		}
 		code := r.URL.Query().Get("code")
+		log.Println(code)
 		nickname := r.URL.Query().Get("nickname")
+		log.Println(nickname)
 		adm, err := epoller.addPlayer(code, conn, nickname)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -94,6 +69,7 @@ func main() {
 			n.Conn.Close()
 			conn.Close()
 		}
+		log.Println("success")
 	})
 
 	http.HandleFunc("/ws/play", func(w http.ResponseWriter, r *http.Request) {
@@ -104,10 +80,11 @@ func main() {
 			return
 		}
 		code := r.URL.Query().Get("code")
+		log.Println(code)
 		n := mkAdmin(conn, code)
 		epoller.Add(n)
 	})
-
+	fmt.Println("server run")
 	if err := http.ListenAndServe(":8083", nil); err != nil {
 		log.Fatal(err)
 	}
@@ -130,6 +107,7 @@ func startepoll() {
 				}
 				conn.Close()
 			} else {
+				log.Println(string(msg))
 				for _, c := range conn.players {
 					wsutil.WriteClientMessage(c, ws.OpText, msg)
 				}
@@ -155,6 +133,7 @@ func starteroom() {
 				}
 				conn.Close()
 			} else {
+				log.Println(string(msg))
 				wsutil.WriteClientMessage(*conn.admin, ws.OpText, msg)
 			}
 		}
