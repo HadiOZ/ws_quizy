@@ -52,9 +52,7 @@ func main() {
 			return
 		}
 		code := r.URL.Query().Get("code")
-		log.Println(code)
 		nickname := r.URL.Query().Get("nickname")
-		log.Println(nickname)
 		adm, err := epoller.addPlayer(code, conn, nickname)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -69,7 +67,6 @@ func main() {
 			n.Conn.Close()
 			conn.Close()
 		}
-		log.Println("success")
 	})
 
 	http.HandleFunc("/ws/play", func(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +77,6 @@ func main() {
 			return
 		}
 		code := r.URL.Query().Get("code")
-		log.Println(code)
 		n := mkAdmin(conn, code)
 		epoller.Add(n)
 	})
@@ -107,7 +103,6 @@ func startepoll() {
 				}
 				conn.Close()
 			} else {
-				log.Println(string(msg))
 				for _, c := range conn.players {
 					wsutil.WriteClientMessage(c, ws.OpText, msg)
 				}
@@ -133,7 +128,6 @@ func starteroom() {
 				}
 				conn.Close()
 			} else {
-				log.Println(string(msg))
 				wsutil.WriteClientMessage(*conn.admin, ws.OpText, msg)
 			}
 		}
