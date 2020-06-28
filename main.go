@@ -6,8 +6,7 @@ import (
 	"net/http"
 	"syscall"
 
-	"github.com/gobwas/ws"
-	"github.com/gobwas/ws/wsutil"
+	"github.com/gorilla/websocket"
 )
 
 var epoller *epoll
@@ -45,8 +44,7 @@ func main() {
 	go starteroom()
 
 	http.HandleFunc("/ws/join", func(w http.ResponseWriter, r *http.Request) {
-		conn, _, _, err := ws.UpgradeHTTP(r, w)
-
+		conn, err := websocket.Upgrade(w, r, w.Header(), 1024, 1024)
 		if err != nil {
 			http.Error(w, "could not open websocket connection", http.StatusBadRequest)
 			return
@@ -70,8 +68,7 @@ func main() {
 	})
 
 	http.HandleFunc("/ws/play", func(w http.ResponseWriter, r *http.Request) {
-		conn, _, _, err := ws.UpgradeHTTP(r, w)
-
+		conn, err := websocket.Upgrade(w, r, w.Header(), 1024, 1024)
 		if err != nil {
 			http.Error(w, "could not open websocket connection", http.StatusBadRequest)
 			return
@@ -97,14 +94,16 @@ func startepoll() {
 			if conn.Conn == nil {
 				break
 			}
-			if msg, _, err := wsutil.ReadClientData(conn.Conn); err != nil {
+			if t, m, err := conn.Conn.ReadMessage(); err != nil {
 				if err := epoller.Remove(conn); err != nil {
 					log.Printf("Failed to remove %v", err)
 				}
 				conn.Close()
 			} else {
 				for _, c := range conn.players {
-					wsutil.WriteClientMessage(c, ws.OpText, msg)
+					if err := c.WriteMessage(t, m); err != nil {
+						log.Printf("Failed to send  message %v", err)
+					}
 				}
 			}
 		}
@@ -122,13 +121,15 @@ func starteroom() {
 			if conn.Conn == nil {
 				break
 			}
-			if msg, _, err := wsutil.ReadClientData(conn.Conn); err != nil {
+			if t, m, err := conn.ReadMessage(); err != nil {
 				if err := erooms.Remove(conn); err != nil {
 					log.Printf("Failed to remove %v", err)
 				}
 				conn.Close()
 			} else {
-				wsutil.WriteClientMessage(*conn.admin, ws.OpText, msg)
+				if err := conn.admin.WriteMessage(t, m); err != nil {
+					log.Printf("Failed to send  message %v", err)
+				}
 			}
 		}
 	}

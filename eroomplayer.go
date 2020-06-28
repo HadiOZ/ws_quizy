@@ -1,18 +1,18 @@
 package main
 
 import (
-	"net"
+	"log"
 	"sync"
 	"syscall"
-	"log"
 
+	"github.com/gorilla/websocket"
 	"golang.org/x/sys/unix"
 )
 
 type player struct {
-	net.Conn
-	admin *net.Conn
-	name string
+	*websocket.Conn
+	admin *websocket.Conn
+	name  string
 }
 
 type eroom struct {

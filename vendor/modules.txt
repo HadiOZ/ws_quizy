@@ -8,6 +8,8 @@ github.com/gobwas/pool/pbytes
 # github.com/gobwas/ws v1.0.3
 github.com/gobwas/ws
 github.com/gobwas/ws/wsutil
+# github.com/gorilla/websocket v1.4.2
+github.com/gorilla/websocket
 # golang.org/x/sys v0.0.0-20200622214017-ed371f2e16b4
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix

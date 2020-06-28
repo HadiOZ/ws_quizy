@@ -3,33 +3,33 @@ package main
 import (
 	"errors"
 	"log"
-	"net"
 	"reflect"
 	"sync"
 	"syscall"
 
+	"github.com/gorilla/websocket"
 	"golang.org/x/sys/unix"
 )
 
 type admin struct {
-	net.Conn
+	*websocket.Conn
 	code    string
-	players map[string]net.Conn
+	players map[string]*websocket.Conn
 	lock    *sync.RWMutex
 }
 
-func mkAdmin(conn net.Conn, key string) admin {
+func mkAdmin(conn *websocket.Conn, key string) admin {
 	return admin{
 		Conn:    conn,
 		code:    key,
-		players: make(map[string]net.Conn),
+		players: make(map[string]*websocket.Conn),
 		lock:    &sync.RWMutex{},
 	}
 }
 
-func (a *admin) add(conn *net.Conn, key string) {
+func (a *admin) add(conn *websocket.Conn, key string) {
 	log.Println("can run add 1")
-	a.players[key] = *conn
+	a.players[key] = conn
 	log.Println("can run add 2")
 	log.Println("can run add 3")
 }
@@ -52,13 +52,13 @@ func mkEpoll() (*epoll, error) {
 	}, nil
 }
 
-func (e *epoll) addPlayer(code string, conn net.Conn, key string) (*net.Conn, error) {
+func (e *epoll) addPlayer(code string, conn *websocket.Conn, key string) (*websocket.Conn, error) {
 	for _, a := range e.connections {
 		if a.code == code {
 			a.lock.Lock()
 			defer a.lock.Unlock()
 			a.players[key] = conn
-			return &a.Conn, nil
+			return a.Conn, nil
 		}
 	}
 	err := errors.New("admin not found")
@@ -112,10 +112,10 @@ func (e *epoll) Wait() ([]admin, error) {
 	return connections, nil
 }
 
-func websocketFD(conn net.Conn) int {
-	tcpConn := reflect.Indirect(reflect.ValueOf(conn)).FieldByName("conn")
+func websocketFD(conn *websocket.Conn) int {
+	connVal := reflect.Indirect(reflect.ValueOf(conn)).FieldByName("conn").Elem()
+	tcpConn := reflect.Indirect(connVal).FieldByName("conn")
 	fdVal := tcpConn.FieldByName("fd")
 	pfdVal := reflect.Indirect(fdVal).FieldByName("pfd")
-
 	return int(pfdVal.FieldByName("Sysfd").Int())
 }
