@@ -65,6 +65,23 @@ func (e *epoll) addPlayer(code string, conn *websocket.Conn, key string) (*webso
 	return nil, err
 }
 
+func (e *epoll) checkAdmin(code string, key string) (bool, error) {
+	for _, a := range e.connections {
+		if a.code == code {
+			a.lock.Lock()
+			defer a.lock.Unlock()
+			for keys, _ := range a.players {
+				if keys == key {
+					return true, nil
+				}
+			}
+			return false, nil
+		}
+	}
+	err := errors.New("admin not found")
+	return false, err
+}
+
 func (e *epoll) Add(conn admin) error {
 	// Extract file descriptor associated with the connection
 	fd := websocketFD(conn.Conn)
