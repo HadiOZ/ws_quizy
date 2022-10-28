@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"gobwas-quizy/pool"
-	"gobwas-quizy/roles"
+	"gobwas-quizy/role"
+
 	"log"
 	"net/http"
 	"syscall"
@@ -29,15 +30,16 @@ func main() {
 
 	http.HandleFunc("/ws/join", func(w http.ResponseWriter, r *http.Request) {
 		conn, err := websocket.Upgrade(w, r, w.Header(), 1024, 1024)
+
 		if err != nil {
 			http.Error(w, "could not open websocket connection", http.StatusBadRequest)
 			return
 		}
 		code := r.URL.Query().Get("code")
 		nickname := r.URL.Query().Get("nickname")
-		room := pool.Pool[code]
-		player := roles.NewPlayer(nickname, room.Admin, conn)
-		room.Add(&player)
+		room := pool.Search(code)
+		player := role.NewEntity(nickname, role.MEMBER_ROLE, conn)
+		room.Add(player)
 
 	})
 
@@ -48,17 +50,17 @@ func main() {
 			return
 		}
 		code := r.URL.Query().Get("code")
-		admin := roles.NewAdmin(code, conn)
+		admin := role.NewEntity(code, role.ADMIN_ROLE, conn)
 		room, err := pool.NewRoom()
-		room.Add(&admin)
+		room.Add(admin)
 		go room.Start()
-		pool.Pool[code] = room
+		pool.Add(code, room)
 	})
 
 	http.HandleFunc("/check", func(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
-		ip := r.RemoteAddr
-		log.Println(ip)
+		nickname := r.URL.Query().Get("nickname")
+
 		if r.Method != http.MethodGet {
 			http.Error(w, "Just Allow GET Method", http.StatusBadRequest)
 			return
@@ -67,8 +69,8 @@ func main() {
 		w.Header().Set("Access-Control-Allow-Methods", "GET")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
 		w.Header().Set("Content-Type", "application/json")
-		node, err := epoller.checkAdmin(code, ip)
-		if err != nil {
+		val, room := pool.Check(code, nickname)
+		if !val {
 			pld := payload{
 				Status:  0,
 				Message: "Room not Found",
@@ -78,7 +80,8 @@ func main() {
 			w.Write(bit)
 			return
 		}
-		if node == true {
+
+		if room != nil {
 			pld := payload{
 				Status:  0,
 				Message: "Your Alredy on Room",
