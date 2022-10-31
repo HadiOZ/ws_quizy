@@ -1,5 +1,7 @@
 package pool
 
+import "log"
+
 // defaul Pool
 var defPool map[string]*Room
 
@@ -9,6 +11,7 @@ func init() {
 		for code, v := range defPool {
 			if v.Len() == 0 {
 				delete(defPool, code)
+				log.Printf("delete room %s", code)
 			}
 		}
 	}()

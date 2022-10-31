@@ -40,6 +40,7 @@ func main() {
 		room := pool.Search(code)
 		player := role.NewEntity(nickname, role.MEMBER_ROLE, conn)
 		room.Add(player)
+		log.Printf("add %s to room %s", nickname, code)
 
 	})
 
@@ -55,6 +56,7 @@ func main() {
 		room.Add(admin)
 		go room.Start()
 		pool.Add(code, room)
+		log.Printf("add room %s to pool", code)
 	})
 
 	http.HandleFunc("/check", func(w http.ResponseWriter, r *http.Request) {

@@ -89,6 +89,7 @@ func (r *Room) Wait() ([]role.Entity, error) {
 
 func (r *Room) broadcash(uniqcode string, sender *websocket.Conn) error {
 	t, m, err := sender.ReadMessage()
+	log.Printf("message from %s : %s\n", uniqcode, string(m))
 	if err != nil {
 		return fmt.Errorf("can't read message from %s", uniqcode)
 	}
@@ -99,7 +100,7 @@ func (r *Room) broadcash(uniqcode string, sender *websocket.Conn) error {
 		}
 		err := val.Conn().WriteMessage(t, m)
 		if err != nil {
-			return fmt.Errorf("can't write message from %s", val.Uniqcode())
+			return fmt.Errorf("can't write message to %s", val.Uniqcode())
 		}
 	}
 	return nil
@@ -115,7 +116,7 @@ func (r *Room) peerToPeer(uniqcode string, sender *websocket.Conn) error {
 		adm := r.connections[admin]
 		err := adm.Conn().WriteMessage(t, m)
 		if err != nil {
-			return fmt.Errorf("can't write message from %s", adm.Uniqcode())
+			return fmt.Errorf("can't write message to %s", adm.Uniqcode())
 		}
 	}
 
@@ -125,15 +126,12 @@ func (r *Room) peerToPeer(uniqcode string, sender *websocket.Conn) error {
 func (r *Room) Start() {
 	for {
 		connections, err := r.Wait()
-		if len(connections) == 0 {
-			break
-		}
+
 		if err != nil {
 			log.Printf("Failed to epoll wait %v", err)
 			continue
 		}
 		for _, conn := range connections {
-
 			switch conn.Role {
 			case role.ADMIN_ROLE:
 				err = conn.RWMessage(r.broadcash)
