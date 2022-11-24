@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"gobwas-quizy/pool"
-	"gobwas-quizy/role"
+	"gobwas-quizy/pkg/pool"
+	"gobwas-quizy/pkg/role"
 
 	"log"
 	"net/http"
