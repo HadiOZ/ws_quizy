@@ -1,6 +1,6 @@
 # Websocket Quizzipy
 
-<img src="https://user-images.githubusercontent.com/56477571/204067873-14388c28-49b3-448c-b75e-f9a7b15d01c4.jpg" alt="alt text" title="topology" width="150px" heigh="auto"/>
+<img src="https://user-images.githubusercontent.com/56477571/204067873-14388c28-49b3-448c-b75e-f9a7b15d01c4.jpg" alt="alt text" title="topology" width="50%" heigh="auto"/>
 
 
 ![user](https://user-images.githubusercontent.com/56477571/204067873-14388c28-49b3-448c-b75e-f9a7b15d01c4.jpg){ width=60%,height:30px }
