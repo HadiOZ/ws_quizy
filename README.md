@@ -1,6 +1,5 @@
 # Websocket Quizzipy
-![user(2)](https://user-images.githubusercontent.com/56477571/204069164-868a9e6c-0379-4062-a170-09ff7eda6006.jpg)
-
+![user(3)](https://user-images.githubusercontent.com/56477571/204069227-319a7c07-742e-4318-aa61-8ae05ee9e19c.jpg)
 
 this is a exsample of creating websocket server to handle duplex communication.
 there are two type of node that server define:
