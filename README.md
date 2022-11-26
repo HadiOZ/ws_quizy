@@ -10,4 +10,4 @@ tobe come a Participants you must connect into server throghout endpoin `/ws/joi
 
 ## How to test
 1. run the server by runing `main.go` script or build docker image and run it.
-2. connect to the server by used script `client.go -url <ws://[host]:[port]/[role]>` in client folder
+2. connect to the server by using script `client.go -url <ws://[host]:[port]/[role]>` in client folder
