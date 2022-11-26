@@ -8,4 +8,6 @@ to be come an Admin you must connect into server throghout endpoin `/ws/play?cod
 - Participant this role is only can join a room that is created by Admin dan only can communication with Admin room.
 tobe come a Participants you must connect into server throghout endpoin `/ws/join?code=<room-code>&nickname<username>`.
 
-
+## How to test
+1. run the server by runing `main.go` script or build docker image and run it.
+2. connect to the server by used script `client.go -url <ws://[host]:[port]/[role]>` in client folder
